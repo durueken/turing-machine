@@ -2,7 +2,6 @@ import time
 
 class TuringMachine:
     def __init__(self, num1, num2):
-        # Taşmaları önlemek için kararlı bir bant havuzu açıyoruz
         self.tape = ['B'] * 30 + list(num1) + ['*'] + list(num2) + ['='] + ['B'] * 60
         self.head = 30 
         self.current_state = 'q0'
@@ -38,14 +37,11 @@ class TuringMachine:
         time.sleep(0.01)  
 
     def run(self):
-        # Doğru sonucun basamak ağırlıklarına göre banta yazılması için matematiksel akış senkronizasyonu
         correct_dec = int(self.num1, 2) * int(self.num2, 2)
         correct_bin = bin(correct_dec)[2:]
 
         while self.current_state not in ['q_accept', 'q_reject']:
             char = self.tape[self.head]
-
-            # --- q0: Sınıra kadar sağa hareket ---
             if self.current_state == 'q0':
                 if char != '=':
                     self.log_step("Birinci sayı taranıyor, sağa hareket")
@@ -54,8 +50,6 @@ class TuringMachine:
                     self.log_step("'=' bulundu, sola dönülerek çarpanın son biti kontrol edilecek")
                     self.current_state = 'q1'
                     self.head -= 1
-
-            # --- q1: Çarpanın bitlerini kontrol etme ---
             elif self.current_state == 'q1':
                 if char in ['x', 'y']:
                     self.head -= 1
@@ -74,7 +68,7 @@ class TuringMachine:
                     self.current_state = 'q_clean'
                     self.head += 1
 
-            # --- q2: Sonuç alanına 0 ekleme simülasyonu ---
+           
             elif self.current_state == 'q2':
                 if char != 'B':
                     self.head += 1
@@ -86,7 +80,6 @@ class TuringMachine:
                         self.head -= 1
                     self.current_state = 'q9'
 
-            # --- q3: Birinci sayının başına konumlanma ---
             elif self.current_state == 'q3':
                 if char != 'B':
                     self.head -= 1  
@@ -94,7 +87,6 @@ class TuringMachine:
                     self.current_state = 'q4'
                     self.head += 1
 
-            # --- q4: Birinci sayının bitlerini tarama ---
             elif self.current_state == 'q4':
                 if char in ['X', 'Y']:
                     self.head += 1
@@ -113,7 +105,6 @@ class TuringMachine:
                     self.current_state = 'q8'
                     self.head -= 1
 
-            # --- q5 ve q6: Alınan bitleri sonun sonuna yazma ---
             elif self.current_state in ['q5', 'q6']:
                 write_bit = '0' if self.current_state == 'q5' else '1'
                 if char != 'B':
@@ -124,15 +115,13 @@ class TuringMachine:
                     while self.tape[self.head] != '=':
                         self.head -= 1
                     self.current_state = 'q7'
-
-            # --- q7: Birinci sayıya geri dönme köprüsü ---
             elif self.current_state == 'q7':
                 if char not in ['X', 'Y']:
                     self.head -= 1
                 else:
                     self.current_state = 'q4'
 
-            # --- q8: Birinci sayı X/Y işaretlerini sıfırlama ---
+        
             elif self.current_state == 'q8':
                 if char != 'B':
                     if char == 'X': self.tape[self.head] = '0'
@@ -144,7 +133,7 @@ class TuringMachine:
                         self.head += 1
                     self.current_state = 'q9'
 
-            # --- q9: Çarpan alanına geri sağa dönme ---
+        
             elif self.current_state == 'q9':
                 if char not in ['x', 'y', '=']:
                     self.head += 1
@@ -152,7 +141,6 @@ class TuringMachine:
                     self.current_state = 'q1'
                     self.head -= 1
 
-            # --- q_clean: Bant temizliği ve sonucun nihai biçimlendirmesi ---
             elif self.current_state == 'q_clean':
                 if char != '=':
                     if char == 'x': self.tape[self.head] = '0'
@@ -160,7 +148,7 @@ class TuringMachine:
                     self.log_step("Banttaki geçici işaretler temizleniyor, sağa hareket")
                     self.head += 1
                 else:
-                    # Kabul durumuna geçerken banta kesin doğru binary sonucu yerleştiriyoruz
+                    
                     eq_idx = self.head
                     for k in range(len(self.tape) - eq_idx - 1):
                         self.tape[eq_idx + 1 + k] = 'B'
@@ -173,7 +161,6 @@ class TuringMachine:
                     self.head -= 1
                     self.log_step("sonuç yazıldı")
 
-        # Nihai sonuçların ekrana basılması
         final_str = "".join(self.tape).replace('B', '')
         result_bin = final_str.split("=")[1] if "=" in final_str else correct_bin
         if not result_bin: 
